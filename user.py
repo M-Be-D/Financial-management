@@ -8,12 +8,13 @@ class User:
             "password": None,
             "income": [],
             "expense": {
-                "Title": [],
-                "Amount": [],
-                "Category": [],
-                "Description": []
+                "title": [],
+                "amount": [],
+                "category": [],
+                "description": [],
+                "average": 0
             },
-            "savings": []
+            "saving": 0
         }
         self.users_path = users_list
         with open(users_list, "r") as u:
@@ -37,7 +38,6 @@ class User:
             with open(self.users_path, "w") as u:
                 json.dump(self.users, u)
                 u.close()
-            User(self.users_path)
         
     def login(self, username, password):
         if username in self.usernames:
@@ -49,3 +49,19 @@ class User:
         else:
             print("There is no user with this username!")
             return False
+        
+    def save_financial_data(self, username):
+        
+        def add_income(income):
+            self.users[username]["income"].append(income)
+            saving = sum(self.users[username]["income"]) - sum(self.users[username]["expanse"]["amount"])
+            self.users[username]["saving"] = saving
+
+        def add_expense(title, amount, category, description):
+            self.users[username]["expanse"]["title"].append(title)
+            self.users[username]["expanse"]["amount"].append(amount)
+            self.users[username]["expanse"]["category"].append(category)
+            self.users[username]["expanse"]["description"].append(description)
+            self.users[username]["expanse"]["average"] = (sum(self.users[username]["expanse"]["amount"])/len(self.users[username]["expanse"]["amount"]))
+            saving = sum(self.users[username]["income"]) - sum(self.users[username]["expanse"]["amount"])
+            self.users[username]["saving"] = saving
