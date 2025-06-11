@@ -38,3 +38,14 @@ class User:
                 json.dump(self.users, u)
                 u.close()
             User(self.users_path)
+        
+    def login(self, username, password):
+        if username in self.usernames:
+            if self.users[username]["password"] == password:
+                return True
+            else:
+                print("The password is incorrect!")
+                return False
+        else:
+            print("There is no user with this username!")
+            return False
