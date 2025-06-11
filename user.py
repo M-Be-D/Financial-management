@@ -24,15 +24,17 @@ class User:
         username = input("Please enter username: ")
         password = input("Enter password: ")
         
-        if password != input("Confirm your password: "):
+        if username in self.usernames:
+            print(f"'{username}' already exists!")
+            raise Exception("user_error")        
+        
+        elif password != input("Confirm your password: "):
             print("Passwords do not match. Please try again.")
             raise Exception("pass_error")
-        
-        elif username in self.usernames:
-            print(f"'{username}' already exists!")
-            raise Exception("user_error")
 
         else:
             self.users[username] = self.default_value
             with open(self.users_path, "w") as u:
                 json.dump(self.users, u)
+                u.close()
+            User(self.users_path)
