@@ -10,6 +10,7 @@ class User:
     * To add new user use 'create_user' method
     * To login use 'login' method
     * To submit financial information use 'save_financial_data' method
+    * To list expenses by category use 'expense_list_by_category' method
     """
     def __init__(self, users_list:str):
         self.default_value = {
@@ -105,3 +106,18 @@ class User:
         # Calculate savings
         saving = sum(self.users[username]["income"]) - sum(self.users[username]["expanse"]["amount"])
         self.users[username]["saving"] = saving
+
+    def expense_list_by_category(self, username, category):
+        """
+        To list expenses by category
+        """
+        index_of_category = []
+        for c in range(len(self.users[username]['expense']['category'])):
+            if category == self.users[username]['expense']['category'][c]:
+                index_of_category.append(c)
+        
+        list_by_category = []
+        for i in index_of_category:
+            list_by_category.append(self.users[username]['expense']['amount'][i])
+        
+        print(list_by_category)
