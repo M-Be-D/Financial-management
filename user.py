@@ -1,6 +1,7 @@
 # libraries
 import os
 import json
+import hashlib
 
 # class 'User' for add new users
 class User:
@@ -33,53 +34,74 @@ class User:
         """
         To add new user
         """
-        username = input("Please enter username: ")
-        password = input("Enter password: ")
-        
-        if username in self.usernames:
-            print(f"'{username}' already exists!")
-            raise Exception("user_error")        
-        
-        elif password != input("Confirm your password: "):
-            print("Passwords do not match. Please try again.")
-            raise Exception("pass_error")
+        n = 1
+        while n < 3:
+            username = input("Please enter username: ")
+            password = input("Enter password: ")
 
-        else:
-            self.users[username] = self.default_value
-            with open(self.users_path, "w") as u:
-                json.dump(self.users, u)
-                u.close()
+            if username in self.usernames:
+                print(f"'{username}' already exists!")
+                n += 1
+                continue       
+
+            elif password != input("Confirm your password: "):
+                print("Passwords do not match. Please try again.")
+                n += 1
+                continue
+            
+            else:
+                break
+    
+        self.users[username] = self.default_value
+        self.users[username]['password'] = hashlib.sha224(password.encode('utf-8')).hexdigest() # save password hash
+        with open(self.users_path, "w") as u:
+            json.dump(self.users, u)
+            u.close()
         
-    def login(self, username, password):
+    def login(self, username, password:str):
         """
         To login
         """
         if username in self.usernames:
-            if self.users[username]["password"] == password:
+            if self.users[username]["password"] == hashlib.sha224(password.encode('utf-8')).hexdigest():
                 return True
             else:
                 print("The password is incorrect!")
                 return False
         else:
-            print("There is no user with this username!")
+            print(f"{username} is not exist.")
             return False
         
-    def save_financial_data(self, username):
+    def save_financial_data(self, username, s_income=False, s_expense=False):
         """
         To submit financial information
         """
-        # submit income
-        def add_income(income):
-            self.users[username]["income"].append(income)
-            saving = sum(self.users[username]["income"]) - sum(self.users[username]["expanse"]["amount"])
-            self.users[username]["saving"] = saving
+        if s_income:
+            income = input('enter your income: ')
+            self._add_income(username, income)
 
-        # submit expense
-        def add_expense(title, amount, category, description):
-            self.users[username]["expanse"]["title"].append(title)
-            self.users[username]["expanse"]["amount"].append(amount)
-            self.users[username]["expanse"]["category"].append(category)
-            self.users[username]["expanse"]["description"].append(description)
-            self.users[username]["expanse"]["average"] = (sum(self.users[username]["expanse"]["amount"])/len(self.users[username]["expanse"]["amount"]))
-            saving = sum(self.users[username]["income"]) - sum(self.users[username]["expanse"]["amount"])
-            self.users[username]["saving"] = saving
+        if s_expense:
+            print('Enter the title, amount, category, and description.')
+            title = input('title: ')
+            amount = input('amount: ')
+            category = input('category: ')
+            description = input('description: ')
+            self._add_expense(username, title, amount, category, description)
+    
+    def _add_income(self, username, income):
+        """submit income"""
+        self.users[username]["income"].append(income)
+        saving = sum(self.users[username]["income"]) - sum(self.users[username]["expanse"]["amount"])
+        self.users[username]["saving"] = saving
+    
+    def _add_expense(self, username, title, amount, category, description):
+        """submit expense"""
+        # submit expense data
+        self.users[username]["expanse"]["title"].append(title)
+        self.users[username]["expanse"]["amount"].append(amount)
+        self.users[username]["expanse"]["category"].append(category)
+        self.users[username]["expanse"]["description"].append(description)
+        self.users[username]["expanse"]["average"] = (sum(self.users[username]["expanse"]["amount"])/len(self.users[username]["expanse"]["amount"]))
+        # Calculate savings
+        saving = sum(self.users[username]["income"]) - sum(self.users[username]["expanse"]["amount"])
+        self.users[username]["saving"] = saving
