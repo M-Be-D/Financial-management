@@ -11,6 +11,7 @@ class User:
     * To login use 'login' method
     * To submit financial information use 'save_financial_data' method
     * To list expenses by category use 'expense_list_by_category' method
+    * To calculating total income, expenses, and savings use 'sum' method
     """
     def __init__(self, users_list:str):
         self.default_value = {
@@ -121,3 +122,15 @@ class User:
             list_by_category.append(self.users[username]['expense']['amount'][i])
         
         print(list_by_category)
+
+    def sum(self, username):
+        """
+        To calculating total income, expenses, and savings
+        """
+        total_income = sum(self.users[username]['income'])
+        total_expenses = sum(self.users[username]['expense']['amount'])
+        savings = self.users[username]['saving']
+
+        print(f"total income: {total_income}")
+        print(f"total expenses: {total_expenses}")
+        print(f"savings: {savings}")
