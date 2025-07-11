@@ -16,7 +16,7 @@ class User:
     * To draw a diagram use 'chart' method
     * To find the cost amount by title use 'search' method
     """
-    def __init__(self, users_list:str):
+    def __init__(self):
         self.default_value = {
             "role": "user",
             "password": None,
@@ -30,6 +30,20 @@ class User:
             },
             "saving": 0 # پس‌انداز
         }
+
+        if not os.path.isdir('.manage'):
+            # create manage folder
+            os.mkdir('.manage')
+            # if system os is windows
+            if os.name == "nt":
+                os.system(f"attrib +h .manage") # hide manage folder
+
+        # create users file
+        users_list = '.manage/users.json'
+        with open(users_list, 'w') as file:
+            file.close()
+
+        # reade users file
         self.users_path = users_list
         with open(users_list, "r") as u:
             self.users = json.load(u)
