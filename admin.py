@@ -5,7 +5,10 @@ import json
 
 class Admin(User):
     """
-    config admin
+    # Config admin
+    * Show all users with 'show_users' method
+    * Fine user by username with 'search_users'  method
+    * To add or remove user use 'add_remove' method
     """
     def __init__(self):
         super().__init__()
@@ -28,7 +31,7 @@ class Admin(User):
             print(f'{n}.{username}:{data}')
             datas.append(f'{username}:{data}')
             n += 1
-            
+
         return datas
 
 
@@ -44,6 +47,8 @@ class Admin(User):
     def add_remove(self, username, add:bool):
         """
         To add or remove user
+        - add_remove ('username',True) --> add new user
+        - add_remove ('username',False) --> remove user
         """
         if add:
             if username not in self.usernames:
