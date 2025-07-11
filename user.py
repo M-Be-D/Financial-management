@@ -31,7 +31,7 @@ class User:
             "saving": 0 # پس‌انداز
         }
 
-        if not os.path.isdir('.manage'):
+        if not os.path.exists('.manage'):
             # create manage folder
             os.mkdir('.manage')
             # if system os is windows
@@ -40,8 +40,9 @@ class User:
 
         # create users file
         users_list = '.manage/users.json'
-        with open(users_list, 'w') as file:
-            file.close()
+        if not os.path.isfile(users_list):
+            with open(users_list, 'w') as file:
+                file.close()
 
         # reade users file
         self.users_path = users_list
