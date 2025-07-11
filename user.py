@@ -2,6 +2,7 @@
 import os
 import json
 import hashlib
+import matplotlib.pyplot as plt
 
 # class 'User' for add new users
 class User:
@@ -12,6 +13,7 @@ class User:
     * To submit financial information use 'save_financial_data' method
     * To list expenses by category use 'expense_list_by_category' method
     * To calculating total income, expenses, and savings use 'sum' method
+    * To draw a diagram use 'chart' method
     """
     def __init__(self, users_list:str):
         self.default_value = {
@@ -84,7 +86,13 @@ class User:
 
         if s_expense:
             print('Enter the title, amount, category, and description.')
-            title = input('title: ')
+            while True:
+                title = input('title: ')
+                if title not in self.users[username]['expense']['title']:
+                    break
+                else:
+                    print('Error: This title already exists.')
+
             amount = input('amount: ')
             category = input('category: ')
             description = input('description: ')
@@ -134,3 +142,23 @@ class User:
         print(f"total income: {total_income}")
         print(f"total expenses: {total_expenses}")
         print(f"savings: {savings}")
+
+    def chart(self, username, chart_type):
+        """
+        To draw a diagram
+        """
+        titles = self.users[username]['expense']['title']
+        expenses = self.users[username]['expense']['amount']
+
+        if chart_type == 'bar':
+            plt.bar(titles, expenses)
+            plt.title('Cost distribution')
+            plt.xlabel('title')
+            plt.ylabel('Cost amount')
+            plt.show()
+
+        elif chart_type == 'pie':
+            plt.pie(expenses, labels=titles, autopct='%1.1f%%', startangle=0)
+            plt.title('Cost distribution')
+            plt.axis('equal')  # دایره کامل
+            plt.show()
