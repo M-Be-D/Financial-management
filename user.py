@@ -86,10 +86,10 @@ class User:
             if self.users[username]["password"] == hashlib.sha224(password.encode('utf-8')).hexdigest():
                 return True
             else:
-                print("The password is incorrect!")
+                print("The username or password is incorrect!")
                 return False
         else:
-            print(f"{username} is not exist.")
+            print("The username or password is incorrect!")
             return False
         
     def save_financial_data(self, username, s_income=False, s_expense=False):
