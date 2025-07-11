@@ -14,6 +14,7 @@ class User:
     * To list expenses by category use 'expense_list_by_category' method
     * To calculating total income, expenses, and savings use 'sum' method
     * To draw a diagram use 'chart' method
+    * To find the cost amount by title use 'search' method
     """
     def __init__(self, users_list:str):
         self.default_value = {
@@ -162,3 +163,13 @@ class User:
             plt.title('Cost distribution')
             plt.axis('equal')  # دایره کامل
             plt.show()
+
+    def search(self, username, title):
+        """
+        To find the cost amount by title
+        """
+        if title not in self.users[username]['expense']['title']:
+            print('This title not found.')
+        else:
+            amount = self.users[username]['expense']['amount'][self.users[username]['expense']['title'].index(title)]
+            print(f'Title: {title}, Cost amount: {amount}')
