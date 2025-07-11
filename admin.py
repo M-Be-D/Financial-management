@@ -22,7 +22,15 @@ class Admin(User):
         """
         show all users
         """
-        print(self.users)
+        n = 1
+        datas = []
+        for username, data in self.users:
+            print(f'{n}.{username}:{data}')
+            datas.append(f'{username}:{data}')
+            n += 1
+            
+        return datas
+
 
     def search_users(self, username):
         """
