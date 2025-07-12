@@ -8,25 +8,25 @@ from time import sleep
 
 # clean terminal
 def clean():
-    if os.name == "nt": # windows
+    if os.name == "nt":
         os.system('cls')
-    else: # linux, mac os ,...
+    else:
         os.system('clear')
 
-clean() # clean terminal for start
+clean()
 
 def _banner():
-    # banner
     banners = [banner.banner1, banner.banner2, banner.banner3]
     select_banner = random.choice(banners)
     select_banner()
     banner.connect()
+
 if not os.path.exists('.manage/users.json'):
     _banner()
     user = User()
     print("""Welcome to MDkali Financial Accounting.
 First you need to set up the admin user; set the admin password.""")
-    print(25*"-")
+    print(72*"-")
     admin = Admin()
 
 while os.path.exists('.manage/users.json'):
@@ -34,21 +34,25 @@ while os.path.exists('.manage/users.json'):
     _banner()
     user = User()
     admin = Admin()
-    # signin or signup
+
     print ("""
-    1.sign in
-    2.sign up
-           
-    0.exit
+    1. Sign in
+    2. Sign up
+    0. Exit
     """)
-    choice = input('Choose one(0,1,2):')
+    choice = input('Choose one (0,1,2): ').strip()
     sleep(1)
     clean()
     _banner()
+
     if choice == '0':
-        print("GoodBye!")
-        exit()
-    # login
+        confirm = input("Are you sure you want to exit? (yes/no): ").lower()
+        if confirm in ['yes', 'y']:
+            print("GoodBye!")
+            break
+        else:
+            continue
+
     elif choice == "1":
         attempts = 1
         while True:
@@ -56,111 +60,111 @@ while os.path.exists('.manage/users.json'):
             password = input('Enter your password: ')
             login, role = user.login(username, password)
             if not login:
-                print(f"\n***The username or password is incorrect! try again({attempts}/5)***")
+                print(f"\n***The username or password is incorrect! try again ({attempts}/5)***")
                 if attempts == 5:
-                    print('There were many unsuccessful attempts.')
+                    print('There were too many unsuccessful attempts.')
                     break
                 attempts += 1
                 continue
             else:
                 sleep(1)
-                # if role is user
+                # User dashboard
                 if role == 'user':
                     while True:
                         clean()
                         _banner()
-                        print(f"user: {username}\n------------------------------------------------------------------------\n1. Record income\n2. Record expenses\n3. List expenses by category\n4. Total income and expenses and calculate savings\n5. Draw an expense chart\n6. Search expenses by title\n\n0.exit")
-                        choice = input('What do you want to do? ')
+                        print(f"user: {username}\n" + "-"*72)
+                        print("1. Record income")
+                        print("2. Record expenses")
+                        print("3. List expenses by category")
+                        print("4. Total income and expenses and calculate savings")
+                        print("5. Draw an expense chart")
+                        print("6. Search expenses by title")
+                        print("0. Logout")
+                        choice = input('Choose an option: ').strip()
+
                         if choice == "0":
-                            print('GoodBye!')
-                            exit()
+                            break
                         elif choice == "1":
                             user.save_financial_data(username, s_income=True)
-                            break
                         elif choice == "2":
                             user.save_financial_data(username, s_expense=True)
-                            break
                         elif choice == "3":
                             categories = user.category(username)
-                            while True:    
-                                category = input(f'Enter the full name of your desired category (from the list=[{categories}]): ')
+                            while True:
+                                category = input(f'Enter category (from list={categories}): ')
                                 if category not in categories:
-                                    print(f'{category} not exist in categories list.')
+                                    print(f'{category} not found in the list.')
                                     continue
                                 break
                             user.expense_list_by_category(username, category)
-                            break
                         elif choice == "4":
                             user.sum(username)
-                            break
                         elif choice == "5":
                             while True:
-                                chart_type = input('What type of chart are you looking for (1.pie chart, 2.bar chart)? ')
+                                chart_type = input('Chart type (1. pie, 2. bar): ')
                                 if chart_type in ("1", "pie", "pie chart"):
-                                    chart_type = 'pie'
+                                    user.chart(username, 'pie')
                                     break
                                 elif chart_type in ("2", "bar", "bar chart"):
-                                    chart_type = "bar"
+                                    user.chart(username, 'bar')
                                     break
                                 else:
-                                    print('Error: Choose one of the numbers 1 or 2')
-
-                            user.chart(username, chart_type)
-                            break
+                                    print('Choose 1 or 2')
                         elif choice == "6":
                             titles = user.titles(username)
                             while True:
-                                title = input(f'Enter the full name of your desired title (from the list=[{titles}]): ')
+                                title = input(f'Enter title (from list={titles}): ')
                                 if title not in titles:
-                                    print(f'{title} not exist in titles list.')
+                                    print(f'{title} not found.')
                                     continue
                                 break
                             user.search(username, title)
-                            break
                         else:
-                            print('Error: Choose one of the numbers 1 or 2 or ... or 6')
+                            print('Invalid option.')
                             sleep(2)
-                            
-                # if role is admin
+
+                # Admin dashboard
                 elif role == 'admin':
                     while True:
-                        print("1.show all user\n2.fine user by username\n3.remove user\n4.add new user\n\n0.exit")
-                        choice = input('What do you want to do? ')
+                        clean()
+                        _banner()
+                        print("1. Show all users")
+                        print("2. Find user by username")
+                        print("3. Remove user")
+                        print("4. Add new user")
+                        print("0. Logout")
+                        choice = input('Choose an option: ').strip()
+
                         if choice == "0":
-                            print('GoodBye!')
-                            exit()
+                            break
                         elif choice == "1":
                             datas = admin.show_users()
                             while True:
-                                n_user = input("Which user's information do you want (enter 0 to exit)? ")
-                                if not n_user.isalnum():
-                                    print(f'Error: Choose from 1 to {len(datas)}')
-                                    continue
-                                elif not (1 < int(n_user) < len(datas)):
-                                    print(f'Choose from 1 to {len(datas)}')
-                                    continue
-                                else:
-                                    print(datas[int(n_user)-1])
+                                n_user = input("Enter user number to view (0 to exit): ").strip()
+                                if n_user == "0":
                                     break
-                            break
+                                try:
+                                    idx = int(n_user)
+                                    if 1 <= idx <= len(datas):
+                                        print(datas[idx - 1])
+                                    else:
+                                        print(f"Choose from 1 to {len(datas)}")
+                                except:
+                                    print("Enter a valid number.")
                         elif choice == "2":
-                            username = input("Enter the desired username: ")
+                            username = input("Enter username: ")
                             admin.search_users(username)
-                            break
                         elif choice == "3":
-                            username = input("Enter the desired username: ")
-                            status = False
-                            admin.add_remove(username, add= status)
-                            break
+                            username = input("Enter username to remove: ")
+                            admin.add_remove(username, add=False)
                         elif choice == "4":
-                            username = input("Enter the desired username: ")
-                            status = True
-                            admin.add_remove(username, add= status)
-                            break
+                            username = input("Enter new username to add: ")
+                            admin.add_remove(username, add=True)
                         else:
-                            print('Error: Choose one of the numbers 1 or 2 or ... or 6')
-                            continue
-    # register
+                            print('Invalid option.')
+                            sleep(2)
+
     elif choice == "2":
         user.create_user()
         sleep(2)

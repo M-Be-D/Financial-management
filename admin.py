@@ -16,8 +16,9 @@ class Admin(User):
         if 'admin' not in self.usernames:
             password = input('enter admin password: ')
             self.users['admin'] = self.default_value
-            if password == input("Confirm your password: "):
-                self.users['admin']['password'] = hashlib.sha224(password.encode('utf-8')).hexdigest() # save password hash
+            confirm = input("Confirm your password: ")
+            if password == confirm:
+                self.users['admin']['password'] = hashlib.sha224(password.encode('utf-8')).hexdigest()
             else:
                 print('The passwords do not match.')
                 os.remove(self.user_path)
@@ -25,25 +26,22 @@ class Admin(User):
             self.users['admin']["role"] = 'admin'
             with open(self.user_path, "w") as u:
                 json.dump(self.users, u)
-                u.close()
-            if os.name == "nt": # windows
+            if os.name == "nt":
                 os.system('cls')
-            else: # linux, mac os ,...
+            else:
                 os.system('clear')
-    
+
     def show_users(self):
         """
         show all users
         """
         n = 1
         datas = []
-        for username, data in self.users:
+        for username, data in self.users.items():
             print(f'{n}.{username}')
-            datas.append(f'{username}:{data}')
+            datas.append(f'{username}: {data}')
             n += 1
-
         return datas
-
 
     def search_users(self, username):
         """
@@ -53,8 +51,8 @@ class Admin(User):
             print(f'{username} not exist.')
         else:
             print(f'{username}\n{self.users[username]}')
-    
-    def add_remove(self, username, add:bool):
+
+    def add_remove(self, username, add: bool):
         """
         To add or remove user
         - add_remove ('username',True) --> add new user
@@ -63,17 +61,21 @@ class Admin(User):
         if add:
             if username not in self.usernames:
                 self.users[username] = self.default_value
-                with open(self.users_path, "w") as u:
+                with open(self.user_path, "w") as u:
                     json.dump(self.users, u)
-                    u.close()
             else:
                 print(f"'{username}' already exists!")
-        elif not add:
+        else:
+            if username not in self.usernames:
+                print(f"User '{username}' does not exist.")
+                return
             check_ok = input("Are you sure you want to delete it (yes/no)? ").lower()
             if check_ok in ('yes', "y"):
-                self.users.pop(username)
-                with open(self.users_path, "w") as u:
-                    json.dump(self.users, u)
-                    u.close()
+                try:
+                    self.users.pop(username)
+                    with open(self.user_path, "w") as u:
+                        json.dump(self.users, u)
+                except:
+                    print("Something went wrong while removing the user.")
             elif check_ok in ('no', 'n'):
                 print('The user deletion operation was canceled.')
