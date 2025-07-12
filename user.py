@@ -15,7 +15,6 @@ class User:
     * To find the cost amount by title use 'search' method
     """
     def __init__(self):
-        # Default user data template
         self.default_value = {
             "role": "user",
             "password": None,
@@ -30,23 +29,33 @@ class User:
             "saving": 0
         }
 
-        # Create '.manage' folder if not exist and hide on Windows
         if not os.path.exists('.manage'):
             os.mkdir('.manage')
             if os.name == "nt":
                 os.system("attrib +h .manage")
 
-        # Path to users data file
         self.user_path = '.manage/users.json'
-        # Create users.json if not exist
         if not os.path.isfile(self.user_path):
             with open(self.user_path, 'w') as file:
                 json.dump({}, file)
 
-        # Load users data
         with open(self.user_path, "r") as u:
-            self.users = json.load(u)
+            try:
+                self.users = json.load(u)
+            except json.JSONDecodeError:
+                self.users = {}
+
         self.usernames = list(self.users.keys())
+
+    def save_users(self):
+        """
+        Save all user data to JSON file safely
+        """
+        try:
+            with open(self.user_path, "w") as u:
+                json.dump(self.users, u, indent=4)
+        except Exception as e:
+            print(f"Error saving user data: {e}")
 
     def create_user(self):
         """
@@ -73,7 +82,6 @@ class User:
                 n += 1
                 continue
 
-            # Save new user with hashed password
             self.users[username] = self.default_value.copy()
             self.users[username]['password'] = hashlib.sha224(password.encode('utf-8')).hexdigest()
             self.save_users()
@@ -112,10 +120,9 @@ class User:
             print('Enter the title, amount, category, and description.')
             while True:
                 title = input('title: ').strip()
-                if title not in self.users[username]['expense']['title']:
+                if title and title not in self.users[username]['expense']['title']:
                     break
-                else:
-                    print('Error: This title already exists.')
+                print('Error: This title is empty or already exists.')
 
             amount = input('amount: ').strip()
             if not amount.isdigit():
@@ -124,24 +131,23 @@ class User:
             amount = int(amount)
 
             category = input('category: ').strip()
+            if not category:
+                print("Category cannot be empty.")
+                return
+
             description = input('description: ').strip()
+            # description can be empty
 
             self._add_expense(username, title, amount, category, description)
             self.save_users()
             print("Expense recorded successfully.")
 
     def _add_income(self, username, income):
-        """
-        submit income
-        """
         self.users[username]["income"].append(income)
         saving = sum(self.users[username]["income"]) - sum(self.users[username]["expense"]["amount"])
         self.users[username]["saving"] = saving
 
     def _add_expense(self, username, title, amount, category, description):
-        """
-        submit expense
-        """
         self.users[username]["expense"]["title"].append(title)
         self.users[username]["expense"]["amount"].append(amount)
         self.users[username]["expense"]["category"].append(category)
@@ -152,24 +158,18 @@ class User:
         self.users[username]["saving"] = saving
 
     def expense_list_by_category(self, username, category):
-        """
-        To list expenses by category
-        """
         indexes = [i for i, c in enumerate(self.users[username]['expense']['category']) if c == category]
         expenses = [self.users[username]['expense']['amount'][i] for i in indexes]
-        print(f"Expenses in category '{category}': {expenses}")
+        if not expenses:
+            print(f"No expenses found in category '{category}'.")
+        else:
+            print(f"Expenses in category '{category}': {expenses}")
 
     def category(self, username):
-        """
-        To extract unique categories
-        """
         categories = self.users[username]['expense']['category']
-        return list(set(categories))
+        return list(set(categories)) if categories else []
 
     def sum(self, username):
-        """
-        To calculating total income, expenses, and savings
-        """
         total_income = sum(self.users[username]['income'])
         total_expenses = sum(self.users[username]['expense']['amount'])
         savings = self.users[username]['saving']
@@ -179,9 +179,6 @@ class User:
         print(f"savings: {savings}")
 
     def chart(self, username, chart_type):
-        """
-        To draw a diagram
-        """
         titles = self.users[username]['expense']['title']
         expenses = self.users[username]['expense']['amount']
 
@@ -189,23 +186,22 @@ class User:
             print("No expense data to show chart.")
             return
 
-        if chart_type == 'bar':
-            plt.bar(titles, expenses)
-            plt.title('Cost distribution')
-            plt.xlabel('title')
-            plt.ylabel('Cost amount')
-            plt.show()
-
-        elif chart_type == 'pie':
-            plt.pie(expenses, labels=titles, autopct='%1.1f%%', startangle=0)
-            plt.title('Cost distribution')
-            plt.axis('equal')
-            plt.show()
+        try:
+            if chart_type == 'bar':
+                plt.bar(titles, expenses)
+                plt.title('Cost distribution')
+                plt.xlabel('title')
+                plt.ylabel('Cost amount')
+                plt.show()
+            elif chart_type == 'pie':
+                plt.pie(expenses, labels=titles, autopct='%1.1f%%', startangle=0)
+                plt.title('Cost distribution')
+                plt.axis('equal')
+                plt.show()
+        except Exception as e:
+            print(f"Error showing chart: {e}")
 
     def search(self, username, title):
-        """
-        To find the cost amount by title
-        """
         if title not in self.users[username]['expense']['title']:
             print('This title not found.')
         else:
@@ -214,14 +210,4 @@ class User:
             print(f'Title: {title}, Cost amount: {amount}')
 
     def titles(self, username):
-        """
-        To extract titles
-        """
         return self.users[username]['expense']['title']
-
-    def save_users(self):
-        """
-        Save all user data to JSON file
-        """
-        with open(self.user_path, "w") as u:
-            json.dump(self.users, u, indent=4)

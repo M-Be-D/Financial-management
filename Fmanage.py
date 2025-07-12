@@ -7,7 +7,7 @@ from time import sleep
 
 def clean():
     """
-    Clear the terminal screen based on OS
+    Clear terminal screen
     """
     if os.name == "nt":
         os.system('cls')
@@ -16,7 +16,7 @@ def clean():
 
 def _banner():
     """
-    Display a random banner and connect message
+    Display random banner and connect message
     """
     banners = [banner.banner1, banner.banner2, banner.banner3]
     random.choice(banners)()
@@ -24,9 +24,9 @@ def _banner():
 
 def main():
     """
-    Main entry point of the program
+    Main entry function
     """
-    # If no users exist, prompt to create admin
+    # Initialize user and admin only once
     if not os.path.exists('.manage/users.json'):
         clean()
         _banner()
@@ -62,9 +62,6 @@ First you need to set up the admin user; set the admin password.""")
             sleep(2)
 
 def signin(user_obj):
-    """
-    Handle user sign-in with max 5 attempts
-    """
     attempts = 1
     while attempts <= 5:
         username = input('Enter your username: ').strip()
@@ -81,13 +78,10 @@ def signin(user_obj):
     return None, None
 
 def user_menu(user_obj, username):
-    """
-    Display and handle user menu operations
-    """
     while True:
         clean()
         _banner()
-        print(f"user: {username}\n------------------------------------------------------------------------\n"
+        print(f"user: {username}\n{'-'*72}\n"
               "1. Record income\n"
               "2. Record expenses\n"
               "3. List expenses by category\n"
@@ -155,9 +149,6 @@ def user_menu(user_obj, username):
             sleep(2)
 
 def admin_menu(admin_obj):
-    """
-    Display and handle admin menu operations
-    """
     while True:
         clean()
         _banner()
@@ -184,17 +175,17 @@ def admin_menu(admin_obj):
                 if not (1 <= n_user_int <= len(datas)):
                     print(f'Choose from 1 to {len(datas)}')
                     continue
-                print(datas[n_user_int - 1])
-                input("\nPress Enter to continue...")
+                username = datas[n_user_int - 1]
+                admin_obj.search_users(username)
                 break
         elif choice == '2':
-            username = input("Enter the desired username: ")
+            username = input("Enter the desired username: ").strip()
             admin_obj.search_users(username)
         elif choice == '3':
-            username = input("Enter the desired username: ")
+            username = input("Enter the desired username: ").strip()
             admin_obj.add_remove(username, add=False)
         elif choice == '4':
-            username = input("Enter the desired username: ")
+            username = input("Enter the desired username: ").strip()
             admin_obj.add_remove(username, add=True)
         else:
             print("Error: Choose a valid option")

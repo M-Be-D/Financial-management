@@ -13,59 +13,64 @@ class Admin(User):
     def __init__(self):
         super().__init__()
         if 'admin' not in self.usernames:
-            password = input('enter admin password: ')
-            self.users['admin'] = self.default_value.copy()
-            confirm = input("Confirm your password: ")
+            password = input('enter admin password: ').strip()
+            confirm = input("Confirm your password: ").strip()
+            if not password:
+                print("Password cannot be empty.")
+                return
             if password == confirm:
+                self.users['admin'] = self.default_value.copy()
                 self.users['admin']['password'] = hashlib.sha224(password.encode('utf-8')).hexdigest()
+                self.users['admin']["role"] = 'admin'
+                self.save_users()
+                if os.name == "nt":
+                    os.system('cls')
+                else:
+                    os.system('clear')
             else:
                 print('The passwords do not match.')
-                if os.path.exists(self.user_path):
-                    os.remove(self.user_path)
+                # Do not delete users file, just return
                 return
-            self.users['admin']["role"] = 'admin'
-            self.save_users()
-            if os.name == "nt":
-                os.system('cls')
-            else:
-                os.system('clear')
+
+    def save_users(self):
+        try:
+            with open(self.user_path, "w") as u:
+                json.dump(self.users, u, indent=4)
+        except Exception as e:
+            print(f"Error saving user data: {e}")
 
     def show_users(self):
-        """
-        Show all users with their number
-        """
         n = 1
         datas = []
-        for username, data in self.users.items():
-            print(f'{n}.{username}')
-            datas.append(f'{username}: {data}')
+        for username in self.users:
+            print(f'{n}. {username}')
+            datas.append(username)
             n += 1
         input("\nPress Enter to continue...")
         return datas
 
     def search_users(self, username):
-        """
-        Find user by username
-        """
         if username not in self.usernames:
             print(f'{username} not exist.')
         else:
-            print(f'{username}\n{self.users[username]}')
+            user_data = self.users[username].copy()
+            # Hide password hash for display
+            user_data['password'] = "********"
+            print(f'{username}\n{user_data}')
         input("\nPress Enter to continue...")
 
     def add_remove(self, username, add: bool):
-        """
-        To add or remove user
-        - add_remove ('username',True) --> add new user
-        - add_remove ('username',False) --> remove user
-        """
         if add:
-            if username not in self.usernames:
+            if not username.strip():
+                print("Username cannot be empty.")
+                input("\nPress Enter to continue...")
+                return
+            if username in self.usernames:
+                print(f"'{username}' already exists!")
+            else:
                 self.users[username] = self.default_value.copy()
                 self.save_users()
                 print(f"User '{username}' added.")
-            else:
-                print(f"'{username}' already exists!")
         else:
             if username not in self.usernames:
                 print(f"User '{username}' does not exist.")
@@ -81,10 +86,3 @@ class Admin(User):
                 else:
                     print("The user deletion operation was canceled.")
         input("\nPress Enter to continue...")
-
-    def save_users(self):
-        """
-        Save all user data to JSON file
-        """
-        with open(self.user_path, "w") as u:
-            json.dump(self.users, u, indent=4)
