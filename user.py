@@ -39,14 +39,13 @@ class User:
                 os.system(f"attrib +h .manage") # hide manage folder
 
         # create users file
-        users_list = '.manage/users.json'
-        if not os.path.isfile(users_list):
-            with open(users_list, 'w') as file:
-                file.close()
+        self.user_path = '.manage/users.json'
+        if not os.path.isfile(self.user_path):
+            with open(self.user_path, 'w') as file:
+                json.dump({}, file)
 
         # reade users file
-        self.users_path = users_list
-        with open(users_list, "r") as u:
+        with open(self.user_path, "r") as u:
             self.users = json.load(u)
         self.usernames = self.users.keys()
 
@@ -74,9 +73,11 @@ class User:
     
         self.users[username] = self.default_value
         self.users[username]['password'] = hashlib.sha224(password.encode('utf-8')).hexdigest() # save password hash
-        with open(self.users_path, "w") as u:
+        with open(self.user_path, "w") as u:
             json.dump(self.users, u)
             u.close()
+        print('User was created successfully.')
+        print('From now on, you can sign in with this username.')
         
     def login(self, username, password:str):
         """
@@ -84,13 +85,14 @@ class User:
         """
         if username in self.usernames:
             if self.users[username]["password"] == hashlib.sha224(password.encode('utf-8')).hexdigest():
-                return True
+                role = self.users[username]['role']
+                print('* login successfully.')
+                print(20*'-')
+                return True, role
             else:
-                print("The username or password is incorrect!")
-                return False
+                return False, None
         else:
-            print("The username or password is incorrect!")
-            return False
+            return False, None
         
     def save_financial_data(self, username, s_income=False, s_expense=False):
         """
@@ -146,6 +148,12 @@ class User:
             list_by_category.append(self.users[username]['expense']['amount'][i])
         
         print(list_by_category)
+    
+    def category(self, username):
+        """
+        To extract categories
+        """
+        return self.users[username]['expense']['category']
 
     def sum(self, username):
         """
@@ -188,3 +196,9 @@ class User:
         else:
             amount = self.users[username]['expense']['amount'][self.users[username]['expense']['title'].index(title)]
             print(f'Title: {title}, Cost amount: {amount}')
+
+    def titles(self, username):
+        """
+        To extract titles
+        """
+        return self.users[username]['expense']['title']

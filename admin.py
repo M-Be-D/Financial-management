@@ -2,6 +2,7 @@
 from user import User
 import hashlib
 import json
+import os
 
 class Admin(User):
     """
@@ -17,9 +18,18 @@ class Admin(User):
             self.users['admin'] = self.default_value
             if password == input("Confirm your password: "):
                 self.users['admin']['password'] = hashlib.sha224(password.encode('utf-8')).hexdigest() # save password hash
-            with open(self.users_path, "w") as u:
+            else:
+                print('The passwords do not match.')
+                os.remove(self.user_path)
+                return
+            self.users['admin']["role"] = 'admin'
+            with open(self.user_path, "w") as u:
                 json.dump(self.users, u)
                 u.close()
+            if os.name == "nt": # windows
+                os.system('cls')
+            else: # linux, mac os ,...
+                os.system('clear')
     
     def show_users(self):
         """
@@ -28,7 +38,7 @@ class Admin(User):
         n = 1
         datas = []
         for username, data in self.users:
-            print(f'{n}.{username}:{data}')
+            print(f'{n}.{username}')
             datas.append(f'{username}:{data}')
             n += 1
 
