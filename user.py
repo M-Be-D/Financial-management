@@ -1,10 +1,8 @@
-# libraries
 import os
 import json
 import hashlib
 import matplotlib.pyplot as plt
 
-# class 'User' for add new users
 class User:
     """
     # Config users
@@ -17,6 +15,7 @@ class User:
     * To find the cost amount by title use 'search' method
     """
     def __init__(self):
+        # Default user data template
         self.default_value = {
             "role": "user",
             "password": None,
@@ -31,58 +30,67 @@ class User:
             "saving": 0
         }
 
+        # Create '.manage' folder if not exist and hide on Windows
         if not os.path.exists('.manage'):
             os.mkdir('.manage')
             if os.name == "nt":
                 os.system("attrib +h .manage")
 
+        # Path to users data file
         self.user_path = '.manage/users.json'
+        # Create users.json if not exist
         if not os.path.isfile(self.user_path):
             with open(self.user_path, 'w') as file:
                 json.dump({}, file)
 
+        # Load users data
         with open(self.user_path, "r") as u:
             self.users = json.load(u)
-        self.usernames = self.users.keys()
+        self.usernames = list(self.users.keys())
 
     def create_user(self):
         """
         To add new user
         """
         n = 1
-        while n < 3:
-            username = input("Please enter username: ")
-            password = input("Enter password: ")
+        while n <= 3:
+            username = input("Please enter username: ").strip()
+            if not username:
+                print("Username cannot be empty.")
+                n += 1
+                continue
 
             if username in self.usernames:
                 print(f"'{username}' already exists!")
                 n += 1
-                continue       
+                continue
 
-            elif password != input("Confirm your password: "):
+            password = input("Enter password: ")
+            confirm = input("Confirm your password: ")
+
+            if password != confirm:
                 print("Passwords do not match. Please try again.")
                 n += 1
                 continue
-            
-            else:
-                break
 
-        self.users[username] = self.default_value
-        self.users[username]['password'] = hashlib.sha224(password.encode('utf-8')).hexdigest()
-        with open(self.user_path, "w") as u:
-            json.dump(self.users, u)
-        print('User was created successfully.')
-        print('From now on, you can sign in with this username.')
+            # Save new user with hashed password
+            self.users[username] = self.default_value.copy()
+            self.users[username]['password'] = hashlib.sha224(password.encode('utf-8')).hexdigest()
+            self.save_users()
+            print("User was created successfully.")
+            print("From now on, you can sign in with this username.")
+            break
 
-    def login(self, username, password: str):
+    def login(self, username, password):
         """
         To login
         """
         if username in self.usernames:
-            if self.users[username]["password"] == hashlib.sha224(password.encode('utf-8')).hexdigest():
+            hashed = hashlib.sha224(password.encode('utf-8')).hexdigest()
+            if self.users[username]['password'] == hashed:
                 role = self.users[username]['role']
                 print(20*'-')
-                print('* login successfully.')
+                print("* login successfully.")
                 print(20*'-')
                 return True, role
         return False, None
@@ -92,76 +100,83 @@ class User:
         To submit financial information
         """
         if s_income:
-            income = input('enter your income: ')
-            try:
-                income = int(income)
-                self._add_income(username, income)
-            except:
+            income = input('enter your income: ').strip()
+            if income.isdigit():
+                self._add_income(username, int(income))
+                self.save_users()
+                print("Income recorded successfully.")
+            else:
                 print('The income must be a number.')
 
         if s_expense:
             print('Enter the title, amount, category, and description.')
             while True:
-                title = input('title: ')
+                title = input('title: ').strip()
                 if title not in self.users[username]['expense']['title']:
                     break
                 else:
                     print('Error: This title already exists.')
 
-            amount = input('amount: ')
-            try:
-                amount = int(amount)
-            except:
+            amount = input('amount: ').strip()
+            if not amount.isdigit():
                 print('The amount must be a number.')
                 return
+            amount = int(amount)
 
-            category = input('category: ')
-            description = input('description: ')
+            category = input('category: ').strip()
+            description = input('description: ').strip()
+
             self._add_expense(username, title, amount, category, description)
-
-        with open(self.user_path, "w") as u:
-            json.dump(self.users, u)
+            self.save_users()
+            print("Expense recorded successfully.")
 
     def _add_income(self, username, income):
-        """submit income"""
+        """
+        submit income
+        """
         self.users[username]["income"].append(income)
-        expenses = self.users[username]["expense"]["amount"]
-        self.users[username]["saving"] = sum(self.users[username]["income"]) - sum(expenses)
+        saving = sum(self.users[username]["income"]) - sum(self.users[username]["expense"]["amount"])
+        self.users[username]["saving"] = saving
 
     def _add_expense(self, username, title, amount, category, description):
-        """submit expense"""
+        """
+        submit expense
+        """
         self.users[username]["expense"]["title"].append(title)
         self.users[username]["expense"]["amount"].append(amount)
         self.users[username]["expense"]["category"].append(category)
         self.users[username]["expense"]["description"].append(description)
         amounts = self.users[username]["expense"]["amount"]
-        self.users[username]["expense"]["average"] = sum(amounts) / len(amounts)
-        self.users[username]["saving"] = sum(self.users[username]["income"]) - sum(amounts)
+        self.users[username]["expense"]["average"] = sum(amounts) / len(amounts) if amounts else 0
+        saving = sum(self.users[username]["income"]) - sum(amounts)
+        self.users[username]["saving"] = saving
 
     def expense_list_by_category(self, username, category):
         """
         To list expenses by category
         """
-        amounts = [
-            self.users[username]['expense']['amount'][i]
-            for i, c in enumerate(self.users[username]['expense']['category'])
-            if c == category
-        ]
-        print(amounts)
+        indexes = [i for i, c in enumerate(self.users[username]['expense']['category']) if c == category]
+        expenses = [self.users[username]['expense']['amount'][i] for i in indexes]
+        print(f"Expenses in category '{category}': {expenses}")
 
     def category(self, username):
         """
-        To extract categories
+        To extract unique categories
         """
-        return list(set(self.users[username]['expense']['category']))
+        categories = self.users[username]['expense']['category']
+        return list(set(categories))
 
     def sum(self, username):
         """
         To calculating total income, expenses, and savings
         """
-        print(f"total income: {sum(self.users[username]['income'])}")
-        print(f"total expenses: {sum(self.users[username]['expense']['amount'])}")
-        print(f"savings: {self.users[username]['saving']}")
+        total_income = sum(self.users[username]['income'])
+        total_expenses = sum(self.users[username]['expense']['amount'])
+        savings = self.users[username]['saving']
+
+        print(f"total income: {total_income}")
+        print(f"total expenses: {total_expenses}")
+        print(f"savings: {savings}")
 
     def chart(self, username, chart_type):
         """
@@ -169,6 +184,10 @@ class User:
         """
         titles = self.users[username]['expense']['title']
         expenses = self.users[username]['expense']['amount']
+
+        if not titles or not expenses:
+            print("No expense data to show chart.")
+            return
 
         if chart_type == 'bar':
             plt.bar(titles, expenses)
@@ -199,3 +218,10 @@ class User:
         To extract titles
         """
         return self.users[username]['expense']['title']
+
+    def save_users(self):
+        """
+        Save all user data to JSON file
+        """
+        with open(self.user_path, "w") as u:
+            json.dump(self.users, u, indent=4)
