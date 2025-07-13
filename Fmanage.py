@@ -190,6 +190,4 @@ def admin_menu(admin_obj):
         else:
             print("Error: Choose a valid option")
             sleep(2)
-
-if __name__ == "__main__":
-    main()
+main()

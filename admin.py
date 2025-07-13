@@ -46,7 +46,6 @@ class Admin(User):
             print(f'{n}. {username}')
             datas.append(username)
             n += 1
-        input("\nPress Enter to continue...")
         return datas
 
     def search_users(self, username):

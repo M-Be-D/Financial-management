@@ -17,7 +17,7 @@ class User:
     def __init__(self):
         self.default_value = {
             "role": "user",
-            "password": None,
+            "password": '147ad31215fd55112ce613a7883902bb306aa35bba879cd2dbe500b9',
             "income": [],
             "expense": {
                 "title": [],
